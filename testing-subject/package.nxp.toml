@@ -1,0 +1,8 @@
+name = "hello-world"
+description = "A hello world example with the NXP package file."
+version = "0.0.1"
+main = "index.js"
+
+[repository]
+type = "git"
+url = "https://github.com/nxp/"
