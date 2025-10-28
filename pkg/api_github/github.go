@@ -1,4 +1,4 @@
-package api
+package api_github
 
 import (
 	"encoding/json"
@@ -7,10 +7,11 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/Olafcio1/nxp/pkg/api"
+	"github.com/nxp-node/nxp/pkg/api"
 )
 
 var ErrMissingManifest = errors.New("missing manifest")
+var ErrMissingMetadata = errors.New("missing metadata")
 
 func QueryManifest(repo string) (mod *api.Manifest, err error) {
 	url := "https://raw.githubusercontent.com/" + repo + "/master/package.json"
@@ -24,6 +25,40 @@ func QueryManifest(repo string) (mod *api.Manifest, err error) {
 
 	if resp.Status == "404" {
 		return nil, ErrMissingManifest
+	}
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(data, &mod); err != nil {
+		return nil, err
+	}
+
+	return mod, nil
+}
+
+func QueryMetadata(repo string) (mod *Metadata, err error) {
+	url := "https://api.github.com/repos/" + repo
+
+	req, err := http.NewRequest("GET", url, http.NoBody)
+	req.Header.Add("Accept", "application/vnd.github+json")
+
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+
+	if err != nil {
+		return nil, err
+	} else {
+		defer resp.Body.Close()
+	}
+
+	if resp.Status == "404" {
+		return nil, ErrMissingMetadata
 	}
 
 	data, err := io.ReadAll(resp.Body)

@@ -1,4 +1,4 @@
-package api
+package api_registry
 
 import (
 	"encoding/json"
@@ -7,14 +7,12 @@ import (
 	"io"
 	"net/http"
 	"strings"
-
-	"github.com/Olafcio1/nxp/pkg/api"
 )
 
 var ErrNotFound = errors.New("package not found")
 var ErrUnrecognized = errors.New("unrecognized error")
 
-func QueryPackage(name string) (mod *api.Module, err error) {
+func QueryPackage(name string) (mod *Module, err error) {
 	url := "https://registry.npmjs.org/" + name
 	resp, err := http.Get(url)
 
@@ -45,6 +43,30 @@ func QueryPackage(name string) (mod *api.Module, err error) {
 	}
 
 	return mod, nil
+}
+
+func GetLastMonth(name string) (*uint, error) {
+	url := "https://api.npmjs.org/downloads/point/last-month/" + name
+	resp, err := http.Get(url)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	obj := map[string]any{}
+	if err := json.Unmarshal(data, &obj); err != nil {
+		return nil, err
+	}
+
+	val := uint(obj["downloads"].(float64))
+	return &val, nil
 }
 
 func DownloadPackage(name string, versionName string, version string) (targz *[]byte, suggestedFilename string, err error) {

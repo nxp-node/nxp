@@ -6,7 +6,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/Olafcio1/nxp/cmd/commands"
+	"github.com/nxp-node/nxp/cmd/commands"
+	"github.com/nxp-node/nxp/cmd/console"
 )
 
 var subcommands = map[string]Subcommand{
@@ -15,6 +16,12 @@ var subcommands = map[string]Subcommand{
 		ArgumentCount: MakeRange(1, 1),
 		Description:   "installs the specified package",
 		Function:      commands.Install,
+	},
+	"view": {
+		Usage:         "[package]",
+		ArgumentCount: MakeRange(1, 1),
+		Description:   "views the specified package",
+		Function:      commands.View,
 	},
 	"search": {
 		Usage:         "[term]",
@@ -49,12 +56,12 @@ func Main() {
 			}
 
 			if length < cmd.ArgumentCount.Minimum {
-				fmt.Printf("nxp | too few arguments (expected %s, got %d)\n", sRange, length)
+				console.Fprintln("%stoo few arguments (expected %s, got %d)", commands.Prefix, sRange, length)
 
 				viewCommands()
 				return
 			} else if maxSet && length > *cmd.ArgumentCount.Maximum {
-				fmt.Printf("nxp | too many arguments (expected %s, got %d)\n", sRange, length)
+				console.Fprintln("%stoo many arguments (expected %s, got %d)", commands.Prefix, sRange, length)
 
 				viewCommands()
 				return
@@ -62,14 +69,14 @@ func Main() {
 				cmd.Function(args)
 			}
 		} else {
-			fmt.Printf("nxp | unknown subcommand '%s'\n", cmdName)
+			console.Fprintln("%sunknown subcommand '%s'", commands.Prefix, cmdName)
 			viewCommands()
 		}
 	}
 }
 
 func viewCommands() {
-	fmt.Println("nxp | available subcommands:")
+	console.Fprintln("%s[b]available subcommands:[/b]", commands.Prefix)
 
 	maxName := 0
 	maxUsage := 0
@@ -85,12 +92,12 @@ func viewCommands() {
 		if cmd.Usage != "" {
 			name += " "
 
-			name += cmd.Usage
+			name += fmt.Sprintf("[u]%s[/u]", cmd.Usage)
 			name += strings.Repeat(" ", maxUsage-len(cmd.Usage))
 		} else {
 			name += strings.Repeat(" ", maxUsage+1)
 		}
 
-		fmt.Printf("> %s — %s\n", name, cmd.Description)
+		console.Fprintln("%s> %s — %s", commands.Prefix, name, cmd.Description)
 	}
 }

@@ -3,6 +3,8 @@ package console
 import (
 	"fmt"
 	"strings"
+
+	"github.com/iskaa02/qalam/bbcode"
 )
 
 var lastLength int = 0
@@ -23,15 +25,14 @@ func getSurrounding(text string) (string, string) {
 
 func Printf(text string, placeholders ...any) {
 	bs, ws := getSurrounding(text)
-	total := fmt.Sprintf(text, placeholders...)
+	bbcode.Printf(bs+text+ws, placeholders...)
 
-	fmt.Print(bs + total + ws)
-	setLastLength(total)
+	setLastLength(text)
 }
 
 func Print(text string) {
 	bs, ws := getSurrounding(text)
-	fmt.Print(bs + text + ws)
+	bbcode.Printf(bs + text + ws)
 
 	setLastLength(text)
 }
@@ -40,12 +41,15 @@ func Fprintln(text string, placeholders ...any) {
 	_, ws := getSurrounding(text)
 	total := text + ws + "\n"
 
-	fmt.Printf(total, placeholders...)
+	bbcode.Printf(total, placeholders...)
 	lastLength = 0
 }
 
 func Println(text string) {
 	_, ws := getSurrounding(text)
-	fmt.Println(text + ws)
+
+	display := bbcode.Sprintf(text)
+	fmt.Println(display + ws)
+
 	lastLength = 0
 }

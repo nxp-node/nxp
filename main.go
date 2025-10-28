@@ -1,6 +1,6 @@
 package main
 
-import "github.com/Olafcio1/nxp/cmd"
+import "github.com/nxp-node/nxp/cmd"
 
 func main() {
 	cmd.Main()

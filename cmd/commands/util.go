@@ -3,7 +3,7 @@ package commands
 import (
 	"os"
 
-	"github.com/Olafcio1/nxp/cmd/console"
+	"github.com/nxp-node/nxp/cmd/console"
 	"golang.org/x/term"
 )
 

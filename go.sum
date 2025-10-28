@@ -1,4 +1,16 @@
+github.com/iskaa02/qalam v0.3.0 h1:yA7+MXkXbkP0HRDpkODC3bgQG0e5mjsYOsawwYP2v5k=
+github.com/iskaa02/qalam v0.3.0/go.mod h1:BRa4ht8cMjl27tNzhtuach90dBTma5seOzjpMGA5MY4=
+github.com/lucasb-eyer/go-colorful v1.0.3 h1:QIbQXiugsb+q10B+MI+7DI1oQLdmnep86tWFlaaUAac=
+github.com/lucasb-eyer/go-colorful v1.0.3/go.mod h1:R4dSotOR9KMtayYi1e77YzuveK+i7ruzyGqttikkLy0=
+github.com/mazznoer/colorgrad v0.8.1 h1:Bw/ks+KujOOg9E6YQvPqSqTLryiFnwliAH5VMZarSTI=
+github.com/mazznoer/colorgrad v0.8.1/go.mod h1:xCjvoNkXHJIAPOUMSMrXkFdxTGQqk8zMYS3e5hSLghA=
+github.com/mazznoer/csscolorparser v0.1.0 h1:xUf1uzU1r24JleIIb2Kz3bl7vATStxy53gm67yuPP+c=
+github.com/mazznoer/csscolorparser v0.1.0/go.mod h1:Aj22+L/rYN/Y6bj3bYqO3N6g1dtdHtGfQ32xZ5PJQic=
+github.com/samber/lo v1.52.0 h1:Rvi+3BFHES3A8meP33VPAxiBZX/Aws5RxrschYGjomw=
+github.com/samber/lo v1.52.0/go.mod h1:4+MXEGsJzbKGaUEQFKBq2xtfuznW9oz/WrgyzMzRoM0=
 golang.org/x/sys v0.37.0 h1:fdNQudmxPjkdUTPnLn5mdQv7Zwvbvpaxqs831goi9kQ=
 golang.org/x/sys v0.37.0/go.mod h1:OgkHotnGiDImocRcuBABYBEXf8A9a87e/uXjp9XT3ks=
 golang.org/x/term v0.36.0 h1:zMPR+aF8gfksFprF/Nc/rd1wRS1EI6nDBGyWAvDzx2Q=
 golang.org/x/term v0.36.0/go.mod h1:Qu394IJq6V6dCBRgwqshf3mPF85AqzYEzofzRdZkWss=
+golang.org/x/text v0.22.0 h1:bofq7m3/HAFvbF51jz3Q9wLg3jkvSPuiZu/pD1XwgtM=
+golang.org/x/text v0.22.0/go.mod h1:YRoo4H8PVmsu+E3Ou7cqLVH8oXWIHVoX0jqUWALQhfY=
