@@ -77,9 +77,12 @@ func entriesToTable(entries [][]string) [][]TableEntry {
 }
 
 func calculateWidths(table [][]TableEntry) (widths []uint) {
-	length := len(table[0])
+	length := 0
+	for _, rows := range table {
+		length = max(length, len(rows))
+	}
 
-	for i := 0; i < length; i++ {
+	for range length {
 		widths = append(widths, 0)
 	}
 

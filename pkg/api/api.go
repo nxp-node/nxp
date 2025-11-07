@@ -14,7 +14,7 @@ type Manifest struct {
 	Author          any                `json:"author"`
 	Dependencies    *map[string]string `json:"dependencies"`
 	DevDependencies *map[string]string `json:"devDependencies"`
-	Bin             *map[string]string `json:"bin"`
+	Bin             any                `json:"bin"`
 	Main            *string            `json:"main"`
 	Engines         *map[string]string `json:"engines"`
 }

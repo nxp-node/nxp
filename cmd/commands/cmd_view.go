@@ -16,6 +16,18 @@ import (
 	registry "github.com/nxp-node/nxp/pkg/api_registry"
 )
 
+func binCallback(value string, index int) string {
+	slash := strings.LastIndex(value, "/") + 1
+	filename := value[slash:]
+
+	getter, _ := iter.Pull(strings.SplitSeq(filename, "."))
+
+	name, _ := getter()
+	name, _ = strings.CutPrefix(name, "node-core-")
+
+	return name
+}
+
 func View(args []string) {
 	var arg = args[0]
 	var kind = getKind(arg)
@@ -107,28 +119,25 @@ func View(args []string) {
 	}
 
 	if manifest.Bin != nil {
-		bin := lo.Map(
-			lo.Values(*manifest.Bin),
-			func(value string, index int) string {
-				slash := strings.LastIndex(value, "/") + 1
-				filename := value[slash:]
+		if binDict, ok := manifest.Bin.(map[string]string); ok {
+			bin := lo.Map(
+				lo.Values(binDict),
+				binCallback,
+			)
 
-				getter, _ := iter.Pull(strings.SplitSeq(filename, "."))
+			slices.Sort(bin)
+			slices.Reverse(bin)
 
-				name, _ := getter()
-				name, _ = strings.CutPrefix(name, "node-core-")
-
-				return name
-			},
-		)
-
-		slices.Sort(bin)
-		slices.Reverse(bin)
-
-		console.Fprintln(
-			Prefix+"bin: %s",
-			strings.Join(bin, ", "),
-		)
+			console.Fprintln(
+				Prefix+"bin: %s",
+				strings.Join(bin, ", "),
+			)
+		} else if binStr, ok := manifest.Bin.(string); ok {
+			console.Fprintln(
+				Prefix+"bin: ",
+				binCallback(binStr, 0),
+			)
+		}
 	}
 
 	const RESET string = "\x1b[0m"
