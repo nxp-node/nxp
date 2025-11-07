@@ -3,11 +3,13 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"runtime"
 	"slices"
 	"strings"
 
 	"github.com/nxp-node/nxp/cmd/commands"
 	"github.com/nxp-node/nxp/cmd/console"
+	"golang.org/x/sys/windows"
 )
 
 var subcommands = map[string]Subcommand{
@@ -33,7 +35,29 @@ var subcommands = map[string]Subcommand{
 	},
 }
 
+func vtProcessing() {
+	h, err := windows.GetStdHandle(windows.STD_OUTPUT_HANDLE)
+	if err != nil {
+		panic(err)
+	}
+
+	var mode uint32
+	if err = windows.GetConsoleMode(h, &mode); err != nil {
+		panic(err)
+	}
+
+	mode |= windows.ENABLE_VIRTUAL_TERMINAL_PROCESSING
+
+	if err = windows.SetConsoleMode(h, mode); err != nil {
+		panic(err)
+	}
+}
+
 func Main() {
+	if runtime.GOOS == "windows" {
+		vtProcessing()
+	}
+
 	if len(os.Args) <= 1 {
 		viewCommands()
 	} else {
