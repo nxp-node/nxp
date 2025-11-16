@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -19,14 +20,12 @@ func Install(args []string) {
 	var kind = getKind(arg)
 
 	var name string
+	var version string
+	var dependencies map[string]string
+
 	var err error
 	var tardata *[]byte
 	var tarname string
-
-	prefixpre := "[#1e5688]nxp[/#1e5688] [#336997]"
-	prefixsuf := "[/#336997] "
-
-	prefix := prefixpre + "│" + prefixsuf
 
 	if kind == KindGitHub {
 		var mod *api.Manifest
@@ -37,15 +36,19 @@ func Install(args []string) {
 		mod, err = github.QueryManifest(repo)
 
 		if err != nil {
-			console.Println(prefix + "⚠  error: couldn't query the manifest for the specified package")
-			console.Println(prefix + "           " + err.Error())
+			console.Printnln(Prefix + "⚠  error: couldn't query the manifest for the specified package")
+			console.Printnln(Prefix + "           " + err.Error())
 			return
 		}
 
 		name = mod.Name
-		version := mod.Version
+		version = mod.Version
 
-		console.Printf(prefix+"📩 downloading %s@%s", name, version)
+		if mod.Dependencies != nil {
+			dependencies = *mod.Dependencies
+		}
+
+		console.Printf(Prefix+"📩 downloading %s@%s", name, version)
 		tardata, tarname, err = github.DownloadPackage(repo, name, version)
 	} else {
 		var mod *registry.Module
@@ -54,21 +57,25 @@ func Install(args []string) {
 		mod, err = registry.QueryPackage(name)
 
 		if err != nil {
-			console.Println(prefix + "⚠  error: couldn't query the specified package")
-			console.Println(prefix + "           " + err.Error())
+			console.Printnln(Prefix + "⚠  error: couldn't query the specified package")
+			console.Printnln(Prefix + "           " + err.Error())
 			return
 		}
 
-		latest := mod.DistTags["latest"]
-		version := mod.Versions[latest]
+		version = mod.DistTags["latest"]
+		manifest := mod.Versions[version]
 
-		console.Printf(prefix+"📩 downloading %s@%s", name, latest)
-		tardata, tarname, err = registry.DownloadPackage(name, version.Name, latest)
+		if manifest.Dependencies != nil {
+			dependencies = *manifest.Dependencies
+		}
+
+		console.Printf(Prefix+"📩 downloading %s@%s", name, version)
+		tardata, tarname, err = registry.DownloadPackage(name, manifest.Name, version)
 	}
 
 	if err != nil {
-		console.Println(prefix + "⚠  error: couldn't download the specified package")
-		console.Println(prefix + "           " + err.Error())
+		console.Println(Prefix + "⚠  error: couldn't download the specified package")
+		console.Println(Prefix + "           " + err.Error())
 		return
 	}
 
@@ -80,25 +87,75 @@ func Install(args []string) {
 	destination := dir + "/" + arg
 
 	if _, err = os.Stat(unxtracted); err == nil {
-		console.Println(prefix + "⚠  error: decompression folder ('package') already exists")
-		console.Println(prefix + "           (to continue, rename or delete it)")
+		console.Printnln(Prefix + "⚠  error: decompression folder ('package') already exists")
+		console.Printnln(Prefix + "           (to continue, rename or delete it)")
 		return
 	}
 
-	overwriteCheck(tarname)
-	overwriteCheck(destination)
+	if overwriteCheck(tarname, Option{'s', "skip", "skipping"}) == OC_OPT(1) {
+		console.Print(Prefix + "🛌 skipping package installation")
+		return
+	}
 
-	if !overwriteCheck(tarPath) {
-		console.Print(prefix + "📝 writing .tar.gz")
+	var destOpt = overwriteCheck(destination, Option{'u', "update", "updating"}, Option{'s', "skip", "skipping"})
+	if destOpt == OC_OPT(0) {
+		var val api.Manifest
+
+		data, err := os.ReadFile(destination + "/manifest.json")
+		if err != nil {
+			console.Println(Prefix + "⚠  error: couldn't read the local package's manifest")
+			console.Println(Prefix + "⚠          " + err.Error())
+		}
+
+		err = json.Unmarshal(data, &val)
+		if err != nil {
+			console.Println(Prefix + "⚠  error: couldn't parse the local package's manifest")
+			console.Println(Prefix + "⚠          " + err.Error())
+		}
+
+		outdated := isNewer(val.Version, version)
+		if !outdated {
+			console.Print(Prefix + "📅 package is not outdated, skipping") // or 🎿?
+			return
+		}
+	} else if destOpt == OC_OPT(1) {
+		console.Print(Prefix + "🛌 skipping package installation")
+		return
+	}
+
+	tgOpt := overwriteCheck(tarPath, Option{'s', "skip", "skipping"})
+	if tgOpt == OC_OPT(0) {
+		console.Print(Prefix + "🛌 skipping package installation")
+		return
+	}
+
+	tgPrinted := tgOpt == OC_SAFE
+	if tgPrinted {
+		console.Print(Prefix + "📝 writing .tar.gz")
 	}
 
 	if err = os.WriteFile(tarPath, *tardata, 0700); err != nil {
-		console.Println(prefix + "⚠  error: couldn't create the specified package's tar.gz")
-		console.Println(prefix + "           " + err.Error())
+		if tgPrinted {
+			console.Print("\n")
+		}
+
+		console.Println(Prefix + "⚠  error: couldn't create the specified package's tar.gz")
+		console.Println(Prefix + "           " + err.Error())
 		return
 	}
 
-	console.Print(prefix + "🤐 extracting")
+	if len(dependencies) > 0 && tgPrinted {
+		console.Print("\n")
+	}
+
+	for dependency, version := range dependencies {
+		console.Printf(Prefix+"🖋️  installing dependency: %s[#568856]%s[/#568856]", dependency, version)
+		Install([]string{
+			dependency,
+		})
+	}
+
+	console.Print(Prefix + "🤐 extracting")
 
 	var cmd = exec.Cmd{
 		Path: "tar",
@@ -112,21 +169,38 @@ func Install(args []string) {
 	}
 
 	if err = cmd.Run(); err != nil {
-		console.Print(prefix + "⚠  error: couldn't extract the specified package's tar.gz")
-		console.Print(prefix + "           " + err.Error())
+		console.Print(Prefix + "⚠  error: couldn't extract the specified package's tar.gz")
+		console.Print(Prefix + "           " + err.Error())
 		return
 	}
 
 	if _, err = os.Stat(destination); err == nil {
-		console.Print(prefix + "🚫 deleting old version of the package")
+		console.Print(Prefix + "🚫 deleting old version of the package")
 		os.Rename(destination, fmt.Sprintf("%s/nxp-lost-%d---%s", os.TempDir(), time.Now().UnixMilli(), arg))
 	}
 
-	console.Print(prefix + "📦 renaming decompressed folder ('package') to the package name")
+	console.Print(Prefix + "📦 renaming decompressed folder ('package') to the package name")
 	os.Rename(unxtracted, destination)
 
-	console.Print(prefix + "🚫 deleting .tar.gz")
+	console.Print(Prefix + "🚫 deleting .tar.gz")
 	os.Remove(tarPath)
 
 	console.Print("")
+}
+
+func isNewer(current string, new string) bool {
+	localVersion := strings.Split(current, ".")
+	remoteVersion := strings.Split(new, ".")
+
+	for i, num := range remoteVersion {
+		if len(localVersion)-1 < i {
+			return true
+		}
+
+		if localVersion[i] < num {
+			return true
+		}
+	}
+
+	return false
 }

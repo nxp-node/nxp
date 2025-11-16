@@ -9,15 +9,32 @@ import (
 
 var lastLength int = 0
 
+func getLength(text string) int {
+	length := 0
+	for _, ch := range text {
+		if ch == '\x1b' {
+			for _, ch := range text {
+				if ch == 'm' {
+					break
+				}
+			}
+		} else {
+			length += 1
+		}
+	}
+
+	return length
+}
+
 func setLastLength(text string) {
 	lastNL := strings.LastIndex(text, "\n")
-	lastLength = len(text[max(0, lastNL):])
+	lastLength = getLength(text[max(0, lastNL):])
 }
 
 func getSurrounding(text string) (string, string) {
 	bs := strings.Repeat("\x08", lastLength)
 
-	wslen := max(0, lastLength-len(text))
+	wslen := max(0, lastLength-getLength(text))
 	ws := strings.Repeat(" ", wslen) + strings.Repeat("\x08", wslen)
 
 	return bs, ws
@@ -52,4 +69,12 @@ func Println(text string) {
 	fmt.Println(display + ws)
 
 	lastLength = 0
+}
+
+func Printnln(text string) {
+	if lastLength != 0 {
+		text = "\n" + text
+	}
+
+	Println(text)
 }
