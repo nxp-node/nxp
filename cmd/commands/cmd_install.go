@@ -5,17 +5,19 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"slices"
 	"strings"
 	"time"
 
 	"github.com/nxp-node/nxp/cmd/console"
 	"github.com/nxp-node/nxp/pkg/api"
+	"github.com/samber/lo"
 
 	github "github.com/nxp-node/nxp/pkg/api_github"
 	registry "github.com/nxp-node/nxp/pkg/api_registry"
 )
 
-func Install(args []string) {
+func Install(args []string, queue []string) {
 	var arg = args[0]
 	var kind = getKind(arg)
 
@@ -134,6 +136,7 @@ func Install(args []string) {
 		console.Print(Prefix + "📝 writing .tar.gz")
 	}
 
+	os.MkdirAll(destination, 0700)
 	if err = os.WriteFile(tarPath, *tardata, 0700); err != nil {
 		if tgPrinted {
 			console.Print("\n")
@@ -148,11 +151,17 @@ func Install(args []string) {
 		console.Print("\n")
 	}
 
+	var subqueue = append(queue, lo.MapToSlice(dependencies, func(dependency string, _ string) string {
+		return dependency
+	})...)
+
 	for dependency, version := range dependencies {
 		console.Printf(Prefix+"🖋️  installing dependency: %s[#568856]%s[/#568856]", dependency, version)
-		Install([]string{
-			dependency,
-		})
+		if !slices.Contains(queue, dependency) {
+			Install([]string{
+				dependency,
+			}, subqueue)
+		}
 	}
 
 	console.Print(Prefix + "🤐 extracting")

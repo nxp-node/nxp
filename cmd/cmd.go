@@ -17,7 +17,9 @@ var subcommands = map[string]Subcommand{
 		Usage:         "[package]",
 		ArgumentCount: MakeRange(1, 1),
 		Description:   "installs the specified package",
-		Function:      commands.Install,
+		Function: func(s []string) {
+			commands.Install(s, []string{})
+		},
 	},
 	"view": {
 		Usage:         "[package]",

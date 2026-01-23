@@ -16,5 +16,5 @@ type Manifest struct {
 	DevDependencies *map[string]string `json:"devDependencies"`
 	Bin             any                `json:"bin"`
 	Main            *string            `json:"main"`
-	Engines         *map[string]string `json:"engines"`
+	//Engines         *map[string]string `json:"engines"`  //commented out because apparently sometimes it's different? not sure, but it's unused here anyway
 }
