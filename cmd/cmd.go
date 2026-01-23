@@ -35,6 +35,12 @@ var subcommands = map[string]Subcommand{
 			println("not made yet")
 		},
 	},
+	"color": {
+		Usage:         "[color / hex color]",
+		ArgumentCount: MakeRange(1, 1),
+		Description:   "sets the nxp accent color",
+		Function:      commands.Color,
+	},
 }
 
 func vtProcessing() {
