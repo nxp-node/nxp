@@ -65,8 +65,20 @@ func GetLastMonth(name string) (*uint, error) {
 		return nil, err
 	}
 
+	if obj["downloads"] == nil {
+		return nil, TypeError{Field: "downloads"}
+	}
+
 	val := uint(obj["downloads"].(float64))
 	return &val, nil
+}
+
+type TypeError struct {
+	Field string
+}
+
+func (err TypeError) Error() string {
+	return fmt.Sprintf("Incorrect '%s' type", err.Field)
 }
 
 func DownloadPackage(name string, versionName string, version string) (targz *[]byte, suggestedFilename string, err error) {
