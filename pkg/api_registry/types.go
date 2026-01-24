@@ -13,7 +13,7 @@ type Module struct {
 
 	//Time           map[string]string       `json:"time"`     also sometimes messes up, unused so commenting it out
 
-	Author         api.User        `json:"author"`
+	Author         any             `json:"author"`
 	Users          map[string]bool `json:"users"`
 	Readme         string          `json:"readme"`
 	ReadmeFilename string          `json:"readmeFilename"`

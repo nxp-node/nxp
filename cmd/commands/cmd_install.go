@@ -17,7 +17,7 @@ import (
 	registry "github.com/nxp-node/nxp/pkg/api_registry"
 )
 
-func Install(args []string, queue []string) {
+func Install(args []string, queue []string) (dependence []string) {
 	var arg = args[0]
 	var kind = getKind(arg)
 
@@ -158,9 +158,14 @@ func Install(args []string, queue []string) {
 	for dependency, version := range dependencies {
 		console.Printf(Prefix+"🖋️  installing dependency: %s[#568856]%s[/#568856]", dependency, version)
 		if !slices.Contains(queue, dependency) {
-			Install([]string{
+			dependence = append(dependence, dependency)
+			dependThis := Install([]string{
 				dependency,
 			}, subqueue)
+
+			dependence = append(dependence, dependThis...)
+			subqueue = append(subqueue, dependThis...)
+			queue = append(queue, dependThis...)
 		}
 	}
 
@@ -195,6 +200,7 @@ func Install(args []string, queue []string) {
 	os.Remove(tarPath)
 
 	console.Print("")
+	return dependence
 }
 
 func isNewer(current string, new string) bool {
